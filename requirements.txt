@@ -1,6 +1,15 @@
+# Streamlit for dashboard
 streamlit==1.30.0
+
+# Data handling
 pandas==2.1.1
 numpy==1.25.0
+
+# Machine learning
 scikit-learn==1.2.2
-xgboost==1.7.6
+
+# Optional: if you use XGBoost or other ML models later
+# xgboost==1.7.6
+
+# For serializing models (cloudpickle can help in Streamlit)
 cloudpickle==2.2.1
