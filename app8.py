@@ -42,10 +42,10 @@ with st.form("input_form"):
     col1, col2 = st.columns(2)
 
     with col1:
-        age_in_days = st.number_input("Age (Days)", 0, 100, 14, key="age_in_days")
+        age_in_days = st.number_input("Age (Days)", 0, 60, 14, key="age_in_days")
         birds_alive = st.number_input("Birds Alive", 0, 200000, 900, key="birds_alive")
         mortality_today = st.number_input("Mortality Today", 0, 1000, 1, key="mortality_today")
-        feed_today = st.number_input("Feed Today (kg)", 0.0, 500.0, 22.0, key="feed_today")
+        feed_today = st.number_input("Feed Today (kg)", 0.0, 10000.0, 22.0, key="feed_today")
 
     with col2:
         water_today = 30.0   # Hardcoded as requested
