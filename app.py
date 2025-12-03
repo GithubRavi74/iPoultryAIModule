@@ -1,188 +1,181 @@
 import streamlit as st
 import pandas as pd
 import pickle
-import numpy as np
 import os
 
-# -------------------------------------
-# Load Models Safely
-# -------------------------------------
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# ---------------------------------------------
+# Load Models
+# ---------------------------------------------
+weight_model = pickle.load(open("weight_model.pkl", "rb"))
+mortality_model = pickle.load(open("mortality_model.pkl", "rb"))
+fcr_model = pickle.load(open("fcr_model.pkl", "rb"))
 
-weight_model = pickle.load(open(os.path.join(BASE_DIR, "weight_model.pkl"), "rb"))
-mortality_model = pickle.load(open(os.path.join(BASE_DIR, "mortality_model.pkl"), "rb"))
-fcr_model = pickle.load(open(os.path.join(BASE_DIR, "fcr_model.pkl"), "rb"))
+# ---------------------------------------------
+# History
+# ---------------------------------------------
+HISTORY_FILE = "history.csv"
 
-# -------------------------------------
-# Page Setup
-# -------------------------------------
-st.set_page_config(page_title="iPoultry AI Assistant", layout="wide")
-st.title("🐔 iPoultry AI — Weight, Mortality & FCR Prediction")
+if os.path.exists(HISTORY_FILE):
+    history = pd.read_csv(HISTORY_FILE)
+else:
+    history = pd.DataFrame(columns=[
+        "age_in_days", "birds_alive", "mortality", "feed_kg",
+        "water_l", "temp", "rh", "co", "nh3", "sample_weight"
+    ])
+    history.to_csv(HISTORY_FILE, index=False)
 
-st.markdown("### Enter today's flock metrics")
+# ---------------------------------------------
+# UI CONFIG
+# ---------------------------------------------
+st.set_page_config(page_title="iPoultry AI Module", layout="wide")
+st.title("🐔 iPoultry AI — Daily Predictions Dashboard")
 
-# -------------------------------------------------------
-# Helper Function — Fake History for Demo (Replace Later)
-# -------------------------------------------------------
-def generate_demo_history(days=7):
-    np.random.seed(42)
-    data = {
-        "temp": np.random.uniform(27, 30, days),
-        "rh": np.random.uniform(55, 70, days),
-        "co": np.random.uniform(300, 500, days),
-        "nh3": np.random.uniform(10, 25, days),
-        "feed": np.random.uniform(18, 25, days),
-        "mortality": np.random.randint(0, 5, days),
-        "weight": np.random.uniform(0.8, 1.5, days),
-    }
-    return pd.DataFrame(data)
+st.markdown("""
+Enter today's flock metrics.  
+All advanced calculations like 7-day averages, lags, and FCR will be computed automatically.
+""")
 
-history = generate_demo_history()
-
-# -------------------------------------------------------
-# Farmer Inputs
-# -------------------------------------------------------
-with st.form("input_form"):
-    col1, col2, col3 = st.columns(3)
+# ---------------------------------------------
+# INPUT SECTION
+# ---------------------------------------------
+with st.form("farm_inputs"):
+    col1, col2 = st.columns(2)
 
     with col1:
         age_in_days = st.number_input("Age in Days", 0, 100, 14)
-        birds_alive = st.number_input("Birds Alive", 0, 200000, 900)
-        mortality_today = st.number_input("Mortality Today", 0, 500, 1)
+        birds_alive = st.number_input("Birds Alive", 0, 200000, 9000)
+        mortality_today = st.number_input("Mortality Today", 0, 10000, 5)
 
     with col2:
-        feed_today = st.number_input("Feed Today (kg)", 0.0, 500.0, 22.0)
-        water_today = st.number_input("Water Today (L)", 0.0, 800.0, 30.0)
-        sample_weight_today = st.number_input("Sample Weight (kg)", 0.0, 5.0, 1.2)
-
-    with col3:
-        temp_today = st.number_input("Avg Temp Today (°C)", 0.0, 50.0, 29.0)
-        rh_today = st.number_input("Avg RH Today (%)", 0.0, 100.0, 65.0)
-        co_today = st.number_input("Avg CO (ppm)", 0.0, 2000.0, 400.0)
-        nh3_today = st.number_input("Avg NH₃ (ppm)", 0.0, 200.0, 22.0)
+        feed_kg = st.number_input("Feed Given Today (kg)", 0.0, 2000.0, 200.0)
+        water_l = st.number_input("Water Consumed Today (L)", 0.0, 5000.0, 150.0)
+        sample_weight = st.number_input("Sample Weight (kg)", 0.0, 5.0, 1.2)
 
     submitted = st.form_submit_button("Predict")
 
-# -------------------------------------------------------
-# Predictions Section
-# -------------------------------------------------------
+# ---------------------------------------------
+# PREDICTION LOGIC
+# ---------------------------------------------
 if submitted:
 
-    # -------------------------------------------------------
-    # Auto-Calculated Metrics
-    # -------------------------------------------------------
-    avg_temp_7d = history["temp"].mean()
-    avg_rh_7d = history["rh"].mean()
-    avg_co_7d = history["co"].mean()
-    avg_nh3_7d = history["nh3"].mean()
-    feed_7d = history["feed"].sum()
-    sample_weight_7d = history["weight"].mean()
+    # Save today's input
+    today = {
+        "age_in_days": age_in_days,
+        "birds_alive": birds_alive,
+        "mortality": mortality_today,
+        "feed_kg": feed_kg,
+        "water_l": water_l,
+        "temp": 0,    # placeholder because environment removed
+        "rh": 0,
+        "co": 0,
+        "nh3": 0,
+        "sample_weight": sample_weight
+    }
 
-    mort_l1, mort_l2, mort_l3 = history["mortality"].tail(3).tolist()
-    feed_l1, feed_l2, feed_l3 = history["feed"].tail(3).tolist()
+    history = history.append(today, ignore_index=True)
+    history.to_csv(HISTORY_FILE, index=False)
 
-    # -------------------------------------------------------
-    # BEAUTIFUL CARD UI FOR AUTO-CALCULATED DATA
-    # -------------------------------------------------------
-    st.markdown("""
-        <style>
-            .card {
-                background-color: #ffffff;
-                padding: 18px;
-                border-radius: 12px;
-                box-shadow: 0px 4px 12px rgba(0,0,0,0.1);
-                margin-bottom: 20px;
-            }
-            .card h4 {
-                margin: 0;
-                color: #007bff;
-                padding-bottom: 8px;
-            }
-            .card p {
-                margin: 2px 0;
-                font-size: 15px;
-            }
-        </style>
-    """, unsafe_allow_html=True)
+    # -----------------------------------------
+    # Lags (auto)
+    # -----------------------------------------
+    def lag(col):
+        if len(history) < 2:
+            return 0, 0, 0
+        l1 = history[col].shift(1).iloc[-1]
+        l2 = history[col].shift(2).iloc[-1] if len(history) >= 3 else 0
+        l3 = history[col].shift(3).iloc[-1] if len(history) >= 4 else 0
+        return l1, l2, l3
 
-    st.markdown("## 📌 Auto-Calculated Farm Metrics (Read Only)")
+    mort_l1, mort_l2, mort_l3 = lag("mortality")
+    feed_l1, feed_l2, feed_l3 = lag("feed_kg")
 
-    c1, c2 = st.columns(2)
+    # -----------------------------------------
+    # 7-day averages (Auto)
+    # -----------------------------------------
+    last7 = history.tail(7)
 
-    # LEFT CARD → Environmental
-    c1.markdown(f"""
-        <div class="card">
-            <h4>🌦 Environmental Averages (7 Days)</h4>
-            <p>🌡️ <b>Avg Temp:</b> {avg_temp_7d:.2f} °C</p>
-            <p>💧 <b>Avg RH:</b> {avg_rh_7d:.2f} %</p>
-            <p>🫁 <b>Avg CO:</b> {avg_co_7d:.0f} ppm</p>
-            <p>🟤 <b>Avg NH₃:</b> {avg_nh3_7d:.1f} ppm</p>
-        </div>
-    """, unsafe_allow_html=True)
+    sample_weight_7d = last7["sample_weight"].mean()
+    feed_7d = last7["feed_kg"].sum()
 
-    # RIGHT CARD → Feed & Weight
-    c2.markdown(f"""
-        <div class="card">
-            <h4>🍽 Feed & Weight Summary</h4>
-            <p>🪵 <b>Total Feed (7d):</b> {feed_7d:.1f} kg</p>
-            <p>⚖️ <b>Avg Sample Weight (7d):</b> {sample_weight_7d:.2f} kg</p>
-        </div>
-    """, unsafe_allow_html=True)
+    # FCR auto
+    fcr_today = feed_kg / sample_weight if sample_weight > 0 else 0
+    fcr_7d = feed_7d / sample_weight_7d if sample_weight_7d > 0 else 0
 
-    # LAG CARD FULL WIDTH
-    st.markdown(f"""
-        <div class="card">
-            <h4>⏳ Lag Values (Last 3 Days)</h4>
-            <p>☠️ <b>Mortality:</b> {mort_l1}, {mort_l2}, {mort_l3}</p>
-            <p>🍽️ <b>Feed (kg):</b> {feed_l1:.1f}, {feed_l2:.1f}, {feed_l3:.1f}</p>
-        </div>
-    """, unsafe_allow_html=True)
-
-    # -------------------------------------------------------
-    # Build Row for Prediction
-    # -------------------------------------------------------
+    # -----------------------------------------
+    # Construct final prediction row matching your model
+    # -----------------------------------------
     row = pd.DataFrame([{
         "age_in_days": age_in_days,
         "birds_alive": birds_alive,
         "mortality": mortality_today,
-        "feed_kg": feed_today,
-        "water_consumption_l": water_today,
-        "avg_temp_c": temp_today,
-        "avg_rh": rh_today,
-        "avg_co_ppm": co_today,
-        "avg_nh_ppm": nh3_today,
-        "sample_weight": sample_weight_today,
+        "feed_kg": feed_kg,
+        "water_consumption_l": water_l,
 
-        "avg_temp_c_7d": avg_temp_7d,
-        "avg_rh_7d": avg_rh_7d,
-        "avg_co_ppm_7d": avg_co_7d,
-        "avg_nh_ppm_7d": avg_nh3_7d,
+        "avg_temp_c": 0,
+        "avg_rh": 0,
+        "avg_co_ppm": 0,
+        "avg_nh_ppm": 0,
+
+        "sample_weight": sample_weight,
+        "fcr_today": fcr_today,
+
+        "avg_temp_c_7d": 0,
+        "avg_rh_7d": 0,
+        "avg_co_ppm_7d": 0,
+        "avg_nh_ppm_7d": 0,
+
         "feed_kg_7d": feed_7d,
         "sample_weight_7d": sample_weight_7d,
+        "fcr_today_7d": fcr_7d,
 
         "mortality_lag1": mort_l1,
         "mortality_lag2": mort_l2,
         "mortality_lag3": mort_l3,
+
         "feed_kg_lag1": feed_l1,
         "feed_kg_lag2": feed_l2,
-        "feed_kg_lag3": feed_l3,
-
-        "fcr_today": feed_today / sample_weight_today if sample_weight_today > 0 else 1.8
+        "feed_kg_lag3": feed_l3
     }])
 
-    # -------------------------------------------------------
+    # -----------------------------------------
     # Predictions
-    # -------------------------------------------------------
-    pred_weight = weight_model.predict(row)[0]
-    pred_mortality = mortality_model.predict(row)[0]
-    pred_fcr = fcr_model.predict(row)[0]
+    # -----------------------------------------
+    pred_weight = float(weight_model.predict(row)[0])
+    pred_mortality = float(mortality_model.predict(row)[0])
+    pred_fcr = float(fcr_model.predict(row)[0])
 
-    # -------------------------------------------------------
-    # Display Predictions
-    # -------------------------------------------------------
-    st.markdown("## 📊 AI Predictions")
+    # -----------------------------------------
+    # SHOW PREDICTIONS FIRST
+    # -----------------------------------------
+    st.subheader("📊 AI Predictions for Tomorrow")
 
-    p1, p2, p3 = st.columns(3)
-    p1.metric("Predicted Weight (kg)", f"{pred_weight:.3f}")
-    p2.metric("Predicted Mortality (birds)", f"{round(pred_mortality)}")
-    p3.metric("Predicted FCR", f"{pred_fcr:.3f}")
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Predicted Avg Weight (kg)", f"{pred_weight:.3f}")
+    c2.metric("Predicted Mortality (birds)", f"{round(pred_mortality)}")
+    c3.metric("Predicted FCR", f"{pred_fcr:.3f}")
+
+    st.markdown("---")
+
+    # -----------------------------------------
+    # BELOW: BEAUTIFUL FARM ANALYTICS CARDS
+    # -----------------------------------------
+    st.subheader("📘 Auto-calculated Farm Insights")
+
+    # LAG CARDS
+    st.markdown("### ➤ Mortality Trend (Lag)")
+    l1, l2, l3 = st.columns(3)
+    l1.info(f"Yesterday: **{mort_l1} birds**")
+    l2.info(f"2 Days Ago: **{mort_l2} birds**")
+    l3.info(f"3 Days Ago: **{mort_l3} birds**")
+
+    st.markdown("### ➤ Feed Trend (Lag)")
+    f1, f2, f3 = st.columns(3)
+    f1.success(f"Yesterday Feed: **{feed_l1} kg**")
+    f2.success(f"2 Days Ago: **{feed_l2} kg**")
+    f3.success(f"3 Days Ago: **{feed_l3} kg**")
+
+    st.markdown("### ➤ 7-Day Performance Summary")
+    a1, a2, a3 = st.columns(3)
+    a1.metric("7-Day Avg Sample Weight (kg)", f"{sample_weight_7d:.3f}")
+    a2.metric("7-Day Total Feed (kg)", f"{feed_7d:.1f}")
+    a3.metric("7-Day FCR", f"{fcr_7d:.3f}")
