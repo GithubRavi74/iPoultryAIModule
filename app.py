@@ -84,8 +84,12 @@ if submitted:
     # -------------------------
     # Build DataFrame for prediction
     # -------------------------
+    age_for_prediction = 33  # Predict for day 33
+    #row = pd.DataFrame([{
+        #"age_in_days": age_in_days,
+    
     row = pd.DataFrame([{
-        "age_in_days": age_in_days,
+        "age_in_days": age_for_prediction,
         "birds_alive": birds_alive,
         "mortality": mortality_today,
         "feed_kg": feed_today,
@@ -129,7 +133,7 @@ if submitted:
     # -------------------------
     # Display nicely
     # -------------------------
-    st.subheader("📊 AI Predictions for Tomorrow")
+    st.subheader("📊 AI Predictions for 33 days")
     col1, col2, col3 = st.columns(3)
     col1.metric("Predicted Weight (kg)", f"{pred_weight:.3f}")
     col2.metric("Predicted Mortality (birds)", f"{int(round(pred_mortality))}")
