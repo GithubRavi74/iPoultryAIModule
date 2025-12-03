@@ -48,7 +48,7 @@ with st.form("input_form"):
         feed_today = st.number_input("Feed Today (kg)", 0.0, 500.0, 22.0, key="feed_today")
 
     with col2:
-        water_today = 30.0   # hardcoded as requested
+        water_today = 30.0   # Hardcoded as requested
         sample_weight_today = st.number_input("Bird Weight (kg)", 0.0, 5.0, 1.2, key="sample_weight_today")
 
     submitted = st.form_submit_button("Predict")
@@ -98,10 +98,14 @@ if submitted:
         fcr_today = feed_today / sample_weight_today if sample_weight_today > 0 else 0
 
         # -------------------------
-        # Forecast next 33 days
+        # Forecast days but clipped to ideal max age (40)
         # -------------------------
         forecast_days = 33
-        future_ages = np.arange(age_in_days, age_in_days + forecast_days)
+        max_ideal_age = max(ideal_weight_chart.keys())
+
+        end_age = min(age_in_days + forecast_days - 1, max_ideal_age)
+
+        future_ages = np.arange(age_in_days, end_age + 1)
 
         weight_preds = []
         mort_preds = []
@@ -152,18 +156,19 @@ if submitted:
             fcr_preds.append(float(f))
 
         # -------------------------
-        # Build dataframe
+        # Build dataframe (aligned lengths)
         # -------------------------
+        ideal_list = [ideal_weight_chart.get(int(a)) for a in future_ages]
+
         df_forecast = pd.DataFrame({
             "Bird Age (days)": future_ages.astype(int),
             "Predicted Weight (kg)": np.round(weight_preds, 3),
-            "Ideal Weight (kg)": [ideal_weight_chart.get(age, None) for age in future_ages],
-            "Difference (kg)": np.round(weight_preds - np.array(
-                [ideal_weight_chart.get(age, None) for age in future_ages]), 3),
+            "Ideal Weight (kg)": ideal_list,
+            "Difference (kg)": np.round(np.array(weight_preds) - np.array(ideal_list), 3),
             "Predicted Mortality (birds)": np.round(mort_preds).astype(int),
             "Predicted FCR": np.round(fcr_preds, 3)
         })
- 
+
         # -------------------------
         # Display main section
         # -------------------------
@@ -171,16 +176,15 @@ if submitted:
         st.markdown("#### 🐔 Broiler - Ross")
 
         st.dataframe(
-        df_forecast.style.format({
-            "Predicted Weight (kg)": "{:.3f}",
-            "Ideal Weight (kg)": "{:.3f}",
-            "Difference (kg)": "{:.3f}",
-            "Predicted FCR": "{:.3f}"
-        }),
-        use_container_width=True,
-        hide_index=True
+            df_forecast.style.format({
+                "Predicted Weight (kg)": "{:.3f}",
+                "Ideal Weight (kg)": "{:.3f}",
+                "Difference (kg)": "{:.3f}",
+                "Predicted FCR": "{:.3f}"
+            }),
+            use_container_width=True,
+            hide_index=True
         )
-
 
         # -------------------------
         # Combined Weight Curve
@@ -197,10 +201,9 @@ if submitted:
             line=dict(width=3)
         ))
 
-        ideal_df = df_forecast.dropna(subset=["Ideal Weight (kg)"])
         fig.add_trace(go.Scatter(
-            x=ideal_df["Bird Age (days)"],
-            y=ideal_df["Ideal Weight (kg)"],
+            x=df_forecast["Bird Age (days)"],
+            y=df_forecast["Ideal Weight (kg)"],
             mode="lines+markers",
             name="Ideal Weight",
             line=dict(width=3, dash="dash")
