@@ -222,9 +222,7 @@ if submitted:
         st.markdown(
         f"""
         <h2 style="color:#2E86C1;">Day 33 Prediction:</h2>
-        <h3>Weight: <b>{w33:.2f} kg</b> &nbsp;&nbsp;  
-        #Mortality: <b>{m33}</b> birds &nbsp;&nbsp;  
-        #FCR: <b>{f33:.3f}</b></h3>
+        <h3>Weight: <b>{w33:.2f} kg</b> &nbsp;&nbsp;</h3>
         """,
         unsafe_allow_html=True
         )
@@ -237,9 +235,7 @@ if submitted:
         st.markdown(
         f"""
         <h2 style="color:#27AE60;">Day 35 Prediction:</h2>
-        <h3>Weight: <b>{w35:.2f} kg</b> &nbsp;&nbsp;  
-        #Mortality: <b>{m35}</b> birds &nbsp;&nbsp;  
-        #FCR: <b>{f35:.3f}</b></h3>
+        <h3>Weight: <b>{w35:.2f} kg</b> &nbsp;&nbsp;</h3>
         """,
         unsafe_allow_html=True
        )
