@@ -154,7 +154,7 @@ if submitted:
         # -------------------------
         # Build dataframe
         # -------------------------
-       df_forecast = pd.DataFrame({
+        df_forecast = pd.DataFrame({
             "Bird Age (days)": future_ages.astype(int),
             "Predicted Weight (kg)": np.round(weight_preds, 3),
             "Ideal Weight (kg)": [ideal_weight_chart.get(age, None) for age in future_ages],
