@@ -32,7 +32,8 @@ with st.form("input_form"):
         feed_today = st.number_input("Feed Today (kg)", 0.0, 500.0, 22.0, key="feed_today")
 
     with col2:
-        water_today = st.number_input("Water Today (L)", 0.0, 500.0, 30.0, key="water_today")
+        water_today = 30.0
+        #water_today = st.number_input("Water Today (L)", 0.0, 500.0, 30.0, key="water_today")
         sample_weight_today = st.number_input("Bird Weight (kg)", 0.0, 5.0, 1.2, key="sample_weight_today")
         #sample_weight_today = st.number_input("Sample Weight (kg)", 0.0, 5.0, 1.2, key="sample_weight_today")
 
