@@ -124,7 +124,7 @@ if submitted:
     pred_weight = weight_model.predict(row_w)[0]
     pred_mortality = mortality_model.predict(row_m)[0]
     pred_fcr = fcr_model.predict(row_f)[0]
-    pred_fcr = min(pred_fcr, 3.0)  # Cap FCR to 3.0 for realism
+    #pred_fcr = min(pred_fcr, 3.0)  # Cap FCR to 3.0 for realism
 
     # -------------------------
     # Display nicely
