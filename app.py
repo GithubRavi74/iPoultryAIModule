@@ -164,8 +164,12 @@ if submitted:
         # -------------------------
         # Display results
         # -------------------------
+        #st.subheader(f"📈 {forecast_days}-Day Forecast (from age {age_in_days} to {age_in_days + forecast_days - 1})")
+        #st.dataframe(df_forecast, use_container_width=True)
+        
         st.subheader(f"📈 {forecast_days}-Day Forecast (from age {age_in_days} to {age_in_days + forecast_days - 1})")
-        st.dataframe(df_forecast, use_container_width=True)
+        st.dataframe(df_forecast, use_container_width=True, hide_index=True)
+
 
         st.markdown("### Weight Forecast")
         st.line_chart(df_forecast.set_index("Bird Age (days)")["Predicted Weight (kg)"])
