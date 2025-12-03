@@ -113,6 +113,7 @@ if submitted:
         # Predict day-by-day
         # -------------------------
         for future_age in future_ages:
+
             row = pd.DataFrame([{
                 "age_in_days": int(future_age),
                 "birds_alive": birds_alive,
@@ -140,36 +141,60 @@ if submitted:
                 "feed_kg_lag3": float(feed_lags[-3])
             }])
 
+            # Split model input features
             row_w = row[weight_model.feature_names_in_]
             row_m = row[mortality_model.feature_names_in_]
             row_f = row[fcr_model.feature_names_in_]
 
-            w = weight_model.predict(row_w)[0]
+            # -------------------------
+            # Mortality & FCR predictions
+            # -------------------------
             m = mortality_model.predict(row_m)[0]
+            mort_preds.append(float(m))
+
             f = fcr_model.predict(row_f)[0]
             f = max(1.2, min(f, 2.5))
+            fcr_preds.append(float(f))
 
-            # ------------------------------------------------------
-            # GRADUAL (DECAY) SCALING TOWARD IDEAL WEIGHT
-            # ------------------------------------------------------
+            # -------------------------
+            # INTELLIGENT WEIGHT CORRECTION (FULL PATCH)
+            # -------------------------
+            raw_w = weight_model.predict(row_w)[0]
+
+            ideal_w = ideal_weight_chart.get(int(future_age), None)
             ideal_today = ideal_weight_chart.get(int(age_in_days), None)
 
             if ideal_today and ideal_today > 0:
-                scale_factor = sample_weight_today / ideal_today
+                today_scale = sample_weight_today / ideal_today
             else:
-                scale_factor = 1.0
+                today_scale = 1.0
 
-            decay = 0.10  # 10% pull toward ideal — tweak (0.05–0.20)
+            scaled_w = raw_w * today_scale
 
-            w_scaled_full = w * scale_factor
-            w = (w * (1 - decay)) + (w_scaled_full * decay)
+            # Previous predicted or today's actual
+            prev_w = weight_preds[-1] if weight_preds else sample_weight_today
 
-            weight_preds.append(float(w))
-            mort_preds.append(float(m))
-            fcr_preds.append(float(f))
+            if ideal_w:
+                ideal_prev = ideal_weight_chart.get(int(future_age) - 1, prev_w)
+                min_growth = max(0.01, ideal_w - ideal_prev)
+            else:
+                min_growth = 0.02
+
+            scaled_w = max(scaled_w, prev_w + min_growth)
+
+            if ideal_w:
+                alpha = 0.65
+                final_w = (alpha * ideal_w) + ((1 - alpha) * scaled_w)
+            else:
+                final_w = scaled_w
+
+            if len(weight_preds) > 0:
+                final_w = (0.7 * final_w) + (0.3 * weight_preds[-1])
+
+            weight_preds.append(float(final_w))
 
         # -------------------------
-        # Build dataframe (aligned lengths)
+        # Build dataframe
         # -------------------------
         ideal_list = [ideal_weight_chart.get(int(a)) for a in future_ages]
 
