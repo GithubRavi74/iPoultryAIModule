@@ -85,11 +85,10 @@ if submitted:
     # Build DataFrame for prediction
     # -------------------------
     age_for_prediction = 33  # Predict for day 33
-    #row = pd.DataFrame([{
-        #"age_in_days": age_in_days,
+ 
     
     row = pd.DataFrame([{
-        "age_in_days": age_for_prediction,
+        "age_in_days": age_in_days,
         "birds_alive": birds_alive,
         "mortality": mortality_today,
         "feed_kg": feed_today,
