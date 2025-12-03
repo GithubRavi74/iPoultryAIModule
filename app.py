@@ -139,7 +139,7 @@ if submitted:
             w = weight_model.predict(row_w)[0]
             m = mortality_model.predict(row_m)[0]
             f = fcr_model.predict(row_f)[0]
-            f= = max(1.2, min(f, 2.5))
+            f = max(1.2, min(f, 2.5))
 
             # Append
             weight_preds.append(float(w))
