@@ -2,25 +2,29 @@ import streamlit as st
 import pandas as pd
 import pickle
 import numpy as np
+import os
 
-# Load models
-weight_model = pickle.load(open("weight_model.pkl", "rb"))
-mortality_model = pickle.load(open("mortality_model.pkl", "rb"))
-fcr_model = pickle.load(open("fcr_model.pkl", "rb"))
+# -------------------------------------
+# Load Models Safely
+# -------------------------------------
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Page settings
+weight_model = pickle.load(open(os.path.join(BASE_DIR, "weight_model.pkl"), "rb"))
+mortality_model = pickle.load(open(os.path.join(BASE_DIR, "mortality_model.pkl"), "rb"))
+fcr_model = pickle.load(open(os.path.join(BASE_DIR, "fcr_model.pkl"), "rb"))
+
+# -------------------------------------
+# Page Setup
+# -------------------------------------
 st.set_page_config(page_title="iPoultry AI Assistant", layout="wide")
 st.title("🐔 iPoultry AI — Weight, Mortality & FCR Prediction")
 
 st.markdown("### Enter today's flock metrics")
 
-# --------------------------------------------------------
-# Helper functions to simulate historical data (for demo)
-# --------------------------------------------------------
+# -------------------------------------------------------
+# Helper Function — Fake History for Demo (Replace Later)
+# -------------------------------------------------------
 def generate_demo_history(days=7):
-    """Simulated last 7 days of farm data so UI calculations work.
-       Replace with real database values later.
-    """
     np.random.seed(42)
     data = {
         "temp": np.random.uniform(27, 30, days),
@@ -33,11 +37,11 @@ def generate_demo_history(days=7):
     }
     return pd.DataFrame(data)
 
-history = generate_demo_history(7)   # replace with DB data
+history = generate_demo_history()
 
-# --------------------------------------------------------
-# Farmer Input Section (TODAY ONLY)
-# --------------------------------------------------------
+# -------------------------------------------------------
+# Farmer Inputs
+# -------------------------------------------------------
 with st.form("input_form"):
     col1, col2, col3 = st.columns(3)
 
@@ -59,14 +63,14 @@ with st.form("input_form"):
 
     submitted = st.form_submit_button("Predict")
 
-# --------------------------------------------------------
-# When Predict is clicked
-# --------------------------------------------------------
+# -------------------------------------------------------
+# Predictions Section
+# -------------------------------------------------------
 if submitted:
 
-    # -----------------------------------------------
-    # Auto-calculate 7-day averages from history
-    # -----------------------------------------------
+    # -------------------------------------------------------
+    # Auto-Calculated Metrics
+    # -------------------------------------------------------
     avg_temp_7d = history["temp"].mean()
     avg_rh_7d = history["rh"].mean()
     avg_co_7d = history["co"].mean()
@@ -74,34 +78,69 @@ if submitted:
     feed_7d = history["feed"].sum()
     sample_weight_7d = history["weight"].mean()
 
-    # -----------------------------------------------
-    # Auto-generate lag features (last 3 days)
-    # -----------------------------------------------
     mort_l1, mort_l2, mort_l3 = history["mortality"].tail(3).tolist()
     feed_l1, feed_l2, feed_l3 = history["feed"].tail(3).tolist()
 
-    # -----------------------------------------------
-    # Show the auto-calculated values (read-only)
-    # -----------------------------------------------
-    st.markdown("## 📌 Auto-Calculated Farm Metrics")
+    # -------------------------------------------------------
+    # BEAUTIFUL CARD UI FOR AUTO-CALCULATED DATA
+    # -------------------------------------------------------
+    st.markdown("""
+        <style>
+            .card {
+                background-color: #ffffff;
+                padding: 18px;
+                border-radius: 12px;
+                box-shadow: 0px 4px 12px rgba(0,0,0,0.1);
+                margin-bottom: 20px;
+            }
+            .card h4 {
+                margin: 0;
+                color: #007bff;
+                padding-bottom: 8px;
+            }
+            .card p {
+                margin: 2px 0;
+                font-size: 15px;
+            }
+        </style>
+    """, unsafe_allow_html=True)
 
-    c1, c2, c3, c4, c5 = st.columns(5)
-    c1.metric("Avg Temp (7d)", f"{avg_temp_7d:.2f} °C", delta=None)
-    c2.metric("Avg RH (7d)", f"{avg_rh_7d:.2f} %", delta=None)
-    c3.metric("Avg CO (7d)", f"{avg_co_7d:.0f} ppm", delta=None)
-    c4.metric("Avg NH₃ (7d)", f"{avg_nh3_7d:.1f} ppm", delta=None)
-    c5.metric("Feed Total (7d)", f"{feed_7d:.1f} kg", delta=None)
+    st.markdown("## 📌 Auto-Calculated Farm Metrics (Read Only)")
 
-    c6, c7, c8, c9, c10 = st.columns(5)
-    c6.metric("Sample Weight (7d)", f"{sample_weight_7d:.2f} kg", delta=None)
-    c7.metric("Mortality Lag-1", f"{mort_l1}", delta=None)
-    c8.metric("Mortality Lag-2", f"{mort_l2}", delta=None)
-    c9.metric("Mortality Lag-3", f"{mort_l3}", delta=None)
-    c10.metric("Feed Lag-1 / -2 / -3", f"{feed_l1:.1f} / {feed_l2:.1f} / {feed_l3:.1f}", delta=None)
+    c1, c2 = st.columns(2)
 
-    # -----------------------------------------------
-    # Build final row for model
-    # -----------------------------------------------
+    # LEFT CARD → Environmental
+    c1.markdown(f"""
+        <div class="card">
+            <h4>🌦 Environmental Averages (7 Days)</h4>
+            <p>🌡️ <b>Avg Temp:</b> {avg_temp_7d:.2f} °C</p>
+            <p>💧 <b>Avg RH:</b> {avg_rh_7d:.2f} %</p>
+            <p>🫁 <b>Avg CO:</b> {avg_co_7d:.0f} ppm</p>
+            <p>🟤 <b>Avg NH₃:</b> {avg_nh3_7d:.1f} ppm</p>
+        </div>
+    """, unsafe_allow_html=True)
+
+    # RIGHT CARD → Feed & Weight
+    c2.markdown(f"""
+        <div class="card">
+            <h4>🍽 Feed & Weight Summary</h4>
+            <p>🪵 <b>Total Feed (7d):</b> {feed_7d:.1f} kg</p>
+            <p>⚖️ <b>Avg Sample Weight (7d):</b> {sample_weight_7d:.2f} kg</p>
+        </div>
+    """, unsafe_allow_html=True)
+
+    # LAG CARD FULL WIDTH
+    st.markdown(f"""
+        <div class="card">
+            <h4>⏳ Lag Values (Last 3 Days)</h4>
+            <p>☠️ <b>Mortality:</b> {mort_l1}, {mort_l2}, {mort_l3}</p>
+            <p>🍽️ <b>Feed (kg):</b> {feed_l1:.1f}, {feed_l2:.1f}, {feed_l3:.1f}</p>
+        </div>
+    """, unsafe_allow_html=True)
+
+    # -------------------------------------------------------
+    # Build Row for Prediction
+    # -------------------------------------------------------
     row = pd.DataFrame([{
         "age_in_days": age_in_days,
         "birds_alive": birds_alive,
@@ -114,7 +153,6 @@ if submitted:
         "avg_nh_ppm": nh3_today,
         "sample_weight": sample_weight_today,
 
-        # Auto 7-day values
         "avg_temp_c_7d": avg_temp_7d,
         "avg_rh_7d": avg_rh_7d,
         "avg_co_ppm_7d": avg_co_7d,
@@ -122,7 +160,6 @@ if submitted:
         "feed_kg_7d": feed_7d,
         "sample_weight_7d": sample_weight_7d,
 
-        # Lag values
         "mortality_lag1": mort_l1,
         "mortality_lag2": mort_l2,
         "mortality_lag3": mort_l3,
@@ -130,23 +167,22 @@ if submitted:
         "feed_kg_lag2": feed_l2,
         "feed_kg_lag3": feed_l3,
 
-        # Computed FCR (optional)
         "fcr_today": feed_today / sample_weight_today if sample_weight_today > 0 else 1.8
     }])
 
-    # -----------------------------------------------
-    # Run model predictions
-    # -----------------------------------------------
+    # -------------------------------------------------------
+    # Predictions
+    # -------------------------------------------------------
     pred_weight = weight_model.predict(row)[0]
     pred_mortality = mortality_model.predict(row)[0]
     pred_fcr = fcr_model.predict(row)[0]
 
-    # -----------------------------------------------
-    # Display clean predictions
-    # -----------------------------------------------
+    # -------------------------------------------------------
+    # Display Predictions
+    # -------------------------------------------------------
     st.markdown("## 📊 AI Predictions")
 
     p1, p2, p3 = st.columns(3)
-    p1.metric("Predicted Weight (kg)", f"{pred_weight:.3f}", delta=None)
-    p2.metric("Predicted Mortality (birds)", f"{round(pred_mortality)}", delta=None)
-    p3.metric("Predicted FCR", f"{pred_fcr:.3f}", delta=None)
+    p1.metric("Predicted Weight (kg)", f"{pred_weight:.3f}")
+    p2.metric("Predicted Mortality (birds)", f"{round(pred_mortality)}")
+    p3.metric("Predicted FCR", f"{pred_fcr:.3f}")
