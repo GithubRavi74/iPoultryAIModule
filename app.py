@@ -169,13 +169,13 @@ if submitted:
         st.markdown("### Weight Forecast")
         st.line_chart(df_forecast.set_index("Bird Age (days)")["Predicted Weight (kg)"])
 
-        st.markdown("### Summary (Auto-calculated from last 7 days)")
-        st.write(f"7-day Avg Temp: {avg_temp_7d:.2f} °C   |   7-day Avg RH: {avg_rh_7d:.2f} %")
-        st.write(f"7-day Avg CO: {avg_co_7d:.0f} ppm   |   7-day Avg NH₃: {avg_nh3_7d:.1f} ppm")
-        st.write(f"7-day Total Feed: {feed_7d:.1f} kg   |   7-day Avg Sample Weight: {sample_weight_7d:.2f} kg")
-        st.write(f"7-day FCR: {fcr_7d:.3f}")
-        st.write(f"Mortality Lags (last 3 days): {mort_lags[-3]}, {mort_lags[-2]}, {mort_lags[-1]}")
-        st.write(f"Feed Lags (last 3 days): {feed_lags[-3]:.1f}, {feed_lags[-2]:.1f}, {feed_lags[-1]:.1f}")
+        #st.markdown("### Summary (Auto-calculated from last 7 days)")
+        #st.write(f"7-day Avg Temp: {avg_temp_7d:.2f} °C   |   7-day Avg RH: {avg_rh_7d:.2f} %")
+        #st.write(f"7-day Avg CO: {avg_co_7d:.0f} ppm   |   7-day Avg NH₃: {avg_nh3_7d:.1f} ppm")
+        #st.write(f"7-day Total Feed: {feed_7d:.1f} kg   |   7-day Avg Sample Weight: {sample_weight_7d:.2f} kg")
+        #st.write(f"7-day FCR: {fcr_7d:.3f}")
+        #st.write(f"Mortality Lags (last 3 days): {mort_lags[-3]}, {mort_lags[-2]}, {mort_lags[-1]}")
+        #st.write(f"Feed Lags (last 3 days): {feed_lags[-3]:.1f}, {feed_lags[-2]:.1f}, {feed_lags[-1]:.1f}")
 
     except Exception as e:
         st.error("Prediction failed — see logs for details.")
