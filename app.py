@@ -155,32 +155,31 @@ if submitted:
         # Build dataframe
         # -------------------------
        df_forecast = pd.DataFrame({
-      "Bird Age (days)": future_ages.astype(int),
-      "Predicted Weight (kg)": np.round(weight_preds, 3),
-      "Ideal Weight (kg)": [ideal_weight_chart.get(age, None) for age in future_ages],
-      "Difference (kg)": np.round(weight_preds - np.array(
-        [ideal_weight_chart.get(age, None) for age in future_ages]
-      ), 3),
-      "Predicted Mortality (birds)": np.round(mort_preds).astype(int),
-    "Predicted FCR": np.round(fcr_preds, 3)
-    })
+            "Bird Age (days)": future_ages.astype(int),
+            "Predicted Weight (kg)": np.round(weight_preds, 3),
+            "Ideal Weight (kg)": [ideal_weight_chart.get(age, None) for age in future_ages],
+            "Difference (kg)": np.round(weight_preds - np.array(
+                [ideal_weight_chart.get(age, None) for age in future_ages]), 3),
+            "Predicted Mortality (birds)": np.round(mort_preds).astype(int),
+            "Predicted FCR": np.round(fcr_preds, 3)
+        })
  
-    # -------------------------
-    # Display main section
-    # -------------------------
-    st.subheader("📈 Bird Weight Prediction")
-    st.markdown("#### 🐔 Broiler - Ross")
+        # -------------------------
+        # Display main section
+        # -------------------------
+        st.subheader("📈 Bird Weight Prediction")
+        st.markdown("#### 🐔 Broiler - Ross")
 
-    st.dataframe(
-    df_forecast.style.format({
-        "Predicted Weight (kg)": "{:.3f}",
-        "Ideal Weight (kg)": "{:.3f}",
-        "Difference (kg)": "{:.3f}",
-        "Predicted FCR": "{:.3f}"
-    }),
-    use_container_width=True,
-    hide_index=True
-    )
+        st.dataframe(
+        df_forecast.style.format({
+            "Predicted Weight (kg)": "{:.3f}",
+            "Ideal Weight (kg)": "{:.3f}",
+            "Difference (kg)": "{:.3f}",
+            "Predicted FCR": "{:.3f}"
+        }),
+        use_container_width=True,
+        hide_index=True
+        )
 
 
         # -------------------------
