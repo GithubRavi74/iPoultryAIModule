@@ -33,7 +33,8 @@ with st.form("input_form"):
 
     with col2:
         water_today = st.number_input("Water Today (L)", 0.0, 500.0, 30.0, key="water_today")
-        sample_weight_today = st.number_input("Sample Weight (kg)", 0.0, 5.0, 1.2, key="sample_weight_today")
+        sample_weight_today = st.number_input("Bird Weight (kg)", 0.0, 5.0, 1.2, key="sample_weight_today")
+        #sample_weight_today = st.number_input("Sample Weight (kg)", 0.0, 5.0, 1.2, key="sample_weight_today")
 
     submitted = st.form_submit_button("Predict")
 
@@ -167,7 +168,8 @@ if submitted:
         #st.subheader(f"📈 {forecast_days}-Day Forecast (from age {age_in_days} to {age_in_days + forecast_days - 1})")
         #st.dataframe(df_forecast, use_container_width=True)
         
-        st.subheader(f"📈 {forecast_days}-Day Forecast (from age {age_in_days} to {age_in_days + forecast_days - 1})")
+        st.subheader(f"📈 Bird Weight Prediction")
+        st.markdown("#### 🐔 Broiler - Ross")
         st.dataframe(df_forecast, use_container_width=True, hide_index=True)
 
 
