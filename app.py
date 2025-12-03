@@ -86,18 +86,18 @@ if submitted:
     st.markdown("## 📌 Auto-Calculated Farm Metrics")
 
     c1, c2, c3, c4, c5 = st.columns(5)
-    c1.metric("Avg Temp (7d)", f"{avg_temp_7d:.2f} °C")
-    c2.metric("Avg RH (7d)", f"{avg_rh_7d:.2f} %")
-    c3.metric("Avg CO (7d)", f"{avg_co_7d:.0f} ppm")
-    c4.metric("Avg NH₃ (7d)", f"{avg_nh3_7d:.1f} ppm")
-    c5.metric("Feed Total (7d)", f"{feed_7d:.1f} kg")
+    c1.metric("Avg Temp (7d)", f"{avg_temp_7d:.2f} °C", delta=None)
+    c2.metric("Avg RH (7d)", f"{avg_rh_7d:.2f} %", delta=None)
+    c3.metric("Avg CO (7d)", f"{avg_co_7d:.0f} ppm", delta=None)
+    c4.metric("Avg NH₃ (7d)", f"{avg_nh3_7d:.1f} ppm", delta=None)
+    c5.metric("Feed Total (7d)", f"{feed_7d:.1f} kg", delta=None)
 
     c6, c7, c8, c9, c10 = st.columns(5)
-    c6.metric("Sample Weight (7d)", f"{sample_weight_7d:.2f} kg")
-    c7.metric("Mortality Lag-1", f"{mort_l1}")
-    c8.metric("Mortality Lag-2", f"{mort_l2}")
-    c9.metric("Mortality Lag-3", f"{mort_l3}")
-    c10.metric("Feed Lag-1 / -2 / -3", f"{feed_l1:.1f} / {feed_l2:.1f} / {feed_l3:.1f}")
+    c6.metric("Sample Weight (7d)", f"{sample_weight_7d:.2f} kg", delta=None)
+    c7.metric("Mortality Lag-1", f"{mort_l1}", delta=None)
+    c8.metric("Mortality Lag-2", f"{mort_l2}", delta=None)
+    c9.metric("Mortality Lag-3", f"{mort_l3}", delta=None)
+    c10.metric("Feed Lag-1 / -2 / -3", f"{feed_l1:.1f} / {feed_l2:.1f} / {feed_l3:.1f}", delta=None)
 
     # -----------------------------------------------
     # Build final row for model
@@ -147,6 +147,6 @@ if submitted:
     st.markdown("## 📊 AI Predictions")
 
     p1, p2, p3 = st.columns(3)
-    p1.metric("Predicted Weight (kg)", f"{pred_weight:.3f}")
-    p2.metric("Predicted Mortality (birds)", f"{round(pred_mortality)}")   # rounded
-    p3.metric("Predicted FCR", f"{pred_fcr:.3f}")
+    p1.metric("Predicted Weight (kg)", f"{pred_weight:.3f}", delta=None)
+    p2.metric("Predicted Mortality (birds)", f"{round(pred_mortality)}", delta=None)
+    p3.metric("Predicted FCR", f"{pred_fcr:.3f}", delta=None)
