@@ -221,8 +221,8 @@ if submitted:
 
         st.markdown(
         f"""
-        <h2 style="color:#2E86C1;">Day 33 Prediction:</h2>
-        <h3>Weight: <b>{w33:.2f} kg</b> &nbsp;&nbsp;</h3>
+        <h2 style="color:#2E86C1;">Day 33 Prediction:&nbsp;&nbsp;</h2>
+        <h3>Weight: {w33:.2f} kg</h3>
         """,
         unsafe_allow_html=True
         )
